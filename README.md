@@ -1,4 +1,6 @@
-# Dockerized export server for Highcharts [![Build Status][https://img.shields.io/docker/build/interactivestudios/dockerized-highcharts-export-server]][build-status-url]
+# Dockerized export server for Highcharts
+
+![Build Status](https://img.shields.io/docker/build/interactivestudios/dockerized-highcharts-export-server)
 
 An image to run a Highcharts export server.
 
