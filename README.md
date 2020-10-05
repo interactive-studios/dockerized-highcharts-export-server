@@ -1,1 +1,19 @@
-# dockerized-highcharts-export-server
+# Dockerized export server for Highcharts [![Build Status][https://img.shields.io/docker/build/interactivestudios/dockerized-highcharts-export-server]][build-status-url]
+
+An image to run a Highcharts export server.
+
+See the [Docker hub](https://hub.docker.com/repository/docker/interactivestudios/dockerized-highcharts-export-server) for more information.
+
+## Requirements
+
+ * Docker 19.03.8+
+ * Compose 1.24.1+
+
+ ## Setup
+
+To run the server simply run
+```console
+docker run --rm interactivestudios/dockerized-highcharts-export-server:latest -p 7801:7801
+```
+
+And you can connect to `localhost:7801` to generate any charts.
