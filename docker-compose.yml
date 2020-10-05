@@ -1,0 +1,9 @@
+version: '3.5'
+services:
+   highcharts:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+    - 7801:7801
