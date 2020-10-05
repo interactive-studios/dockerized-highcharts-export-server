@@ -13,7 +13,7 @@ See the [Docker hub](https://hub.docker.com/repository/docker/interactivestudios
 
 To run the server simply run
 ```console
-docker run --rm interactivestudios/dockerized-highcharts-export-server:latest -p 7801:7801
+docker run --rm -p 7801:7801 interactivestudios/dockerized-highcharts-export-server:latest
 ```
 
 And you can connect to `localhost:7801` to generate any charts.
