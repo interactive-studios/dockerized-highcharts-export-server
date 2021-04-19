@@ -7,7 +7,19 @@ ENV HIGHCHARTS_USE_MAPS 0
 ENV HIGHCHARTS_MOMENT 0
 ENV HIGHCHARTS_USE_GANTT 0
 
-WORKDIR /server
+# Use a specific user to do these actions
+ARG UID=12000
+ARG GID=12001
+ARG UNAME=highcharts
+# Add the user with a static UID and statid GID
+RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME
+RUN mkdir /home/highcharts
+RUN chown -R $UID:$GID /home/highcharts
+
+# Log in as the newly created user
+USER $UNAME
+
+WORKDIR /home/highcharts
 
 RUN npm install highcharts-export-server
 
