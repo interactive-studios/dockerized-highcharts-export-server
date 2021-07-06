@@ -1,5 +1,5 @@
 # Doesn't work above Node 12
-FROM node:12
+FROM node:14
 
 ENV ACCEPT_HIGHCHARTS_LICENSE 1
 ENV HIGHCHARTS_VERSION "latest"
@@ -7,6 +7,8 @@ ENV HIGHCHARTS_USE_STYLED 1
 ENV HIGHCHARTS_USE_MAPS 0
 ENV HIGHCHARTS_MOMENT 0
 ENV HIGHCHARTS_USE_GANTT 0
+
+ENV OPENSSL_CONF=/etc/ssl/
 
 # Use a specific user to do these actions
 ARG UID=12000
@@ -22,11 +24,12 @@ USER $UNAME
 
 WORKDIR /home/highcharts
 
-RUN npm install highcharts-export-server
+RUN git clone https://github.com/highcharts/node-export-server.git && cd node-export-server && git checkout 1e992ac40e5f192c9c32fbca4c8b0571062b6247
 
-RUN node ./node_modules/highcharts-export-server/build.js
+RUN cd node-export-server && npm install --production
+RUN node node-export-server/build.js
 
 EXPOSE 7801
 
 # Migrate and start webserver
-CMD ["sh","-c","./node_modules/.bin/highcharts-export-server --enableServer 1 --workLimit 20"]
+CMD ["sh","-c","./node-export-server/bin/cli.js --enableServer 1 --logLevel 4 --workLimit 20"]
