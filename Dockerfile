@@ -28,4 +28,4 @@ RUN node ./node_modules/highcharts-export-server/build.js
 EXPOSE 7801
 
 # Migrate and start webserver
-CMD ["sh","-c","./node_modules/.bin/highcharts-export-server --enableServer 1"]
+CMD ["sh","-c","./node_modules/.bin/highcharts-export-server --enableServer 1 --workLimit 20"]
