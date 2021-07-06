@@ -1,4 +1,5 @@
-FROM node:16
+# Doesn't work above Node 12
+FROM node:12
 
 ENV ACCEPT_HIGHCHARTS_LICENSE 1
 ENV HIGHCHARTS_VERSION "latest"
