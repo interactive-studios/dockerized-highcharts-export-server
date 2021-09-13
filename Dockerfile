@@ -1,4 +1,4 @@
-# Doesn't work above Node 12
+# Doesn't work above Node 14
 FROM node:14@sha256:4164d987bfceb62b17db4938d535dd31fc50d6ee0b4e00ac7a774f82af408d48
 
 ENV ACCEPT_HIGHCHARTS_LICENSE 1
