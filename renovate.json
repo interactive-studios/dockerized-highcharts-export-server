@@ -1,18 +1,19 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
-  ],
-
-  "ignorePaths": [".github/"],
-
-  "pinDigests": true,
-
-  "digest": {
-    "automerge": true
-  },
-
-  "major": {
-    "enabled": false
-  }
+	"extends": [		
+		"config:base"
+	],
+	"dependencyDashboardAutoclose": true,
+	"ignorePaths": [".github/"],
+	
+	"pinDigests": true,
+	
+	"digest": {
+		"automerge": true
+	},
+	"des
+	
+	"major": {
+		"enabled": false
+	}
 }
