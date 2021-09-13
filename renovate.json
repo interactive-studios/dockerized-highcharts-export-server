@@ -3,6 +3,9 @@
   "extends": [
     "config:base"
   ],
+
+  "ignorePaths": [".github/"],
+
   "pinDigests": true,
 
   "digest": {
