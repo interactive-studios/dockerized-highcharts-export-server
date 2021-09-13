@@ -1,8 +1,10 @@
 # Dockerized export server for Highcharts
 
-![Image size](https://img.shields.io/docker/image-size/ghcr.io/interactive-studios/dockerized-highcharts-export-server:main)
-
 An image to run a Highcharts export server.
+
+```
+ghcr.io/interactive-studios/dockerized-highcharts-export-server:main
+```
 
 ## Requirements
 
