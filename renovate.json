@@ -3,6 +3,10 @@
 	"extends": [		
 		"config:base"
 	],
+	"schedule": [
+		"before 1 pm on sunday"
+	],
+	"dependencyDashboard": false,
 	"dependencyDashboardAutoclose": true,
 	"ignorePaths": [".github/"],
 	
