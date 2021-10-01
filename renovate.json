@@ -4,7 +4,7 @@
 		"config:base"
 	],
 	"schedule": [
-		"before 1 pm on sunday"
+		"before 1pm on sunday"
 	],
 	"dependencyDashboard": false,
 	"dependencyDashboardAutoclose": true,
