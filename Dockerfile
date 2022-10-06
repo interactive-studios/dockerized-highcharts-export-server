@@ -1,12 +1,5 @@
-# Doesn't work above Node 14
-FROM node:14
-
-ENV ACCEPT_HIGHCHARTS_LICENSE 1
-ENV HIGHCHARTS_VERSION "9.2.2"
-ENV HIGHCHARTS_USE_STYLED 1
-ENV HIGHCHARTS_USE_MAPS 0
-ENV HIGHCHARTS_MOMENT 0
-ENV HIGHCHARTS_USE_GANTT 0
+# Doesn't work above Node 12
+FROM node:18
 
 ENV OPENSSL_CONF=/etc/ssl/
 
@@ -14,6 +7,28 @@ ENV OPENSSL_CONF=/etc/ssl/
 ARG UID=12000
 ARG GID=12001
 ARG UNAME=highcharts
+
+#We don't need the standalone Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+
+# Install Google Chrome Stable and fonts
+# Note: this installs the necessary libs to make the browser work with Puppeteer.
+RUN apt-get update && \
+	apt-get install -y chromium \
+	fonts-ipafont-gothic \
+	fonts-wqy-zenhei \
+	fonts-thai-tlwg \
+	fonts-kacst \
+	fonts-freefont-ttf \
+	libxss1 \
+	wget \
+	ca-certificates \
+	--no-install-recommends
+
+
+RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
+RUN chmod +x /usr/local/bin/dumb-init
 
 # Add the user with a static UID and statid GID
 RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \ 
@@ -23,15 +38,23 @@ RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \
 # Log in as the newly created user
 USER $UNAME
 
+ENV ACCEPT_HIGHCHARTS_LICENSE 1
+ENV HIGHCHARTS_USE_STYLED 1
+ENV HIGHCHARTS_MOMENT 1
+ENV HIGHCHARTS_USE_NPM 1
+ENV HIGHCHARTS_VERSION 'latest'
+
 WORKDIR /home/highcharts
 
-RUN git clone https://github.com/highcharts/node-export-server.git --depth 1 . && \
-	git fetch --depth=1 origin 14d94276c06bca38741f259625cefd7bbd9d6dae && \
-	git checkout 14d94276c06bca38741f259625cefd7bbd9d6dae && \
-	npm install --production && \
-	node build.js
+RUN git clone https://github.com/highcharts/node-export-server.git . && \
+	git checkout enhancement/puppeteer && \
+	npm install 
 
 EXPOSE 7801
 
+COPY --chown=$UID:$GUID ./.hcexport ./.hcexport
+
+# ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+
 # Migrate and start webserver
-CMD ["sh","-c","./bin/cli.js --enableServer 1 --logLevel 4 --workLimit 20"]
+CMD ["npm", "run", "start", "--", "--loadConfig", ".hcexport"]
