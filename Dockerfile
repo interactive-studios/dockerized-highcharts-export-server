@@ -26,10 +26,6 @@ RUN apt-get update && \
 	ca-certificates \
 	--no-install-recommends
 
-
-RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
-RUN chmod +x /usr/local/bin/dumb-init
-
 # Add the user with a static UID and statid GID
 RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \ 
 	mkdir /home/highcharts && \
@@ -39,7 +35,7 @@ RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \
 USER $UNAME
 
 ENV ACCEPT_HIGHCHARTS_LICENSE 1
-ENV HIGHCHARTS_USE_STYLED 1
+ENV HIGHCHARTS_USE_STYLED 0
 ENV HIGHCHARTS_MOMENT 1
 ENV HIGHCHARTS_USE_NPM 1
 ENV HIGHCHARTS_VERSION 'latest'
@@ -53,8 +49,6 @@ RUN git clone https://github.com/highcharts/node-export-server.git . && \
 EXPOSE 7801
 
 COPY --chown=$UID:$GUID ./.hcexport ./.hcexport
-
-# ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 
 # Migrate and start webserver
 CMD ["npm", "run", "start", "--", "--loadConfig", ".hcexport"]
