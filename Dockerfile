@@ -1,5 +1,5 @@
 # Doesn't work above Node 12
-FROM node:18@sha256:32b920f09c28e3b27c9c5620d843aab0d2bb2f46e7d0505686626ba20cb5da0e
+FROM node:18@sha256:cef9966b19672effeafcf1a67b8add742c3e46ca7dd5532efff60820526c2e95
 
 ENV OPENSSL_CONF=/etc/ssl/
 
