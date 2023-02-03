@@ -6,6 +6,7 @@ An image to run a Highcharts export server.
 ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
 
+
 ## Requirements
  * Docker 19.03.8+
 

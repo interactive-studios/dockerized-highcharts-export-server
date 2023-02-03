@@ -7,30 +7,38 @@ ARG UID=12000
 ARG GID=12001
 ARG UNAME=highcharts
 
-#We don't need the standalone Chromium
+# We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-ENV PUPPETEER_EXECUTABLE_PATH google-chrome-stable
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
 
-# Install Google Chrome Stable and fonts
+# Install Chromium Stable and fonts
 # Note: this installs the necessary libs to make the browser work with Puppeteer.
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-   	 && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install -y \
+  chromium \
+  chromium-l10n \
+  fonts-liberation \
+  fonts-roboto \
+  hicolor-icon-theme \
+  libcanberra-gtk-module \
+  libexif-dev \
+  libgl1-mesa-dri \
+  libgl1-mesa-glx \
+  libpangox-1.0-0 \
+  libv4l-0 \
+  fonts-symbola \
+  --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p /etc/chromium.d/ 
 
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
+
 ENTRYPOINT ["dumb-init", "--"]
 
 # Add the user with a static UID and statid GID
 RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \ 
-	mkdir /home/highcharts && \
-	chown -R $UID:$GID /home/highcharts
+  mkdir /home/highcharts && \
+  chown -R $UID:$GID /home/highcharts
 
 # Log in as the newly created user
 USER $UNAME
@@ -44,8 +52,8 @@ ENV HIGHCHARTS_VERSION 'latest'
 WORKDIR /home/highcharts
 
 RUN git clone https://github.com/highcharts/node-export-server.git . && \
-	git checkout enhancement/puppeteer && \
-	npm install 
+  git checkout enhancement/puppeteer && \
+  npm install 
 
 EXPOSE 7801
 
