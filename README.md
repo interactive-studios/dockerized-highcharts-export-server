@@ -6,7 +6,6 @@ An image to run a Highcharts export server.
 ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
 
-
 ## Requirements
  * Docker 19.03.8+
 
@@ -14,7 +13,7 @@ ghcr.io/interactive-studios/dockerized-highcharts-export-server
 
 To run the server simply run
 ```console
-docker run --rm -p 7801:7801 ghcr.io/interactive-studios/dockerized-highcharts-export-server
+docker run --rm --cap-add=SYS_ADMIN -p 7801:7801 ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
 
 And you can connect to `localhost:7801` to generate any charts.

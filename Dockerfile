@@ -1,63 +1,47 @@
-FROM node:18@sha256:8b2c008211854f4ee9ca328910d1c6bff8f30fc9fdf834b48f7ea40992a2079a
+# Keep this version the same as the one used in highcharts-export-server
+FROM node:22
 
-ENV OPENSSL_CONF=/etc/ssl/
+ENV \
+    # Configure default locale (important for chrome-headless-shell).
+    LANG=en_US.UTF-8 \
+    # UID of the non-root user 'pptruser'
+    PPTRUSER_UID=10042
 
-# Use a specific user to do these actions
-ARG UID=12000
-ARG GID=12001
-ARG UNAME=highcharts
+# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
+# Note: this installs the necessary libs to make the bundled version of Chrome that Puppeteer
+# installs, work.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros \
+    fonts-kacst fonts-freefont-ttf dbus dbus-x11 ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 \
+    libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 \
+    libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 \
+    libxss1 libxtst6 lsb-release wget xdg-utils
 
-# We don't need the standalone Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+# Add pptruser.
+RUN groupadd -r pptruser && useradd -u $PPTRUSER_UID -rm -g pptruser -G audio,video pptruser
 
-# Install Chromium Stable and fonts
-# Note: this installs the necessary libs to make the browser work with Puppeteer.
-RUN apt-get update && apt-get install -y \
-  chromium \
-  chromium-l10n \
-  fonts-liberation \
-  fonts-roboto \
-  hicolor-icon-theme \
-  libcanberra-gtk-module \
-  libexif-dev \
-  libgl1-mesa-dri \
-  libgl1-mesa-glx \
-  libpangox-1.0-0 \
-  libv4l-0 \
-  fonts-symbola \
-  --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/* \
-  && mkdir -p /etc/chromium.d/ 
+USER $PPTRUSER_UID
 
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 /usr/local/bin/dumb-init
-RUN chmod +x /usr/local/bin/dumb-init
+WORKDIR /home/pptruser
 
-ENTRYPOINT ["dumb-init", "--"]
+ENV DBUS_SESSION_BUS_ADDRESS autolaunch:
 
-# Add the user with a static UID and statid GID
-RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \ 
-  mkdir /home/highcharts && \
-  chown -R $UID:$GID /home/highcharts
+WORKDIR /home/pptruser
+VOLUME /home/pptruser/highcharts-cache
 
-# Log in as the newly created user
-USER $UNAME
+ENV HIGHCHARTS_CACHE_PATH '../../highcharts-cache'
+ENV PUPPETEER_CACHE_DIR '/home/pptruser/.cache/puppeteer'
+ENV PUPPETEER_SKIP_DOWNLOAD 'true'
 
-ENV ACCEPT_HIGHCHARTS_LICENSE 1
-ENV HIGHCHARTS_USE_STYLED 0
-ENV HIGHCHARTS_MOMENT 1
-ENV HIGHCHARTS_USE_NPM 1
-ENV HIGHCHARTS_VERSION 'latest'
+RUN mkdir -p /home/pptruser/highcharts-cache && \
+    npm install highcharts-export-server
 
-WORKDIR /home/highcharts
-
-RUN git clone https://github.com/highcharts/node-export-server.git . && \
-  git checkout enhancement/puppeteer && \
-  npm install 
+USER root
+RUN npx puppeteer browsers install chrome-headless-shell --install-deps
+USER $PPTRUSER_UID
 
 EXPOSE 7801
 
-COPY --chown=$UID:$GUID ./.hcexport ./.hcexport
-
 # Migrate and start webserver
-CMD ["npm", "run", "start", "--", "--loadConfig", ".hcexport"]
+#CMD ["bash"]
+CMD ["./node_modules/.bin/highcharts-export-server", "--enableServer" ,"true"]

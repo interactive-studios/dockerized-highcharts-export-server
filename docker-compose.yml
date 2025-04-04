@@ -1,9 +1,14 @@
-version: '3.5'
 services:
    highcharts:
      build:
        context: .
        dockerfile: Dockerfile
      restart: unless-stopped
+     privileged: true
+     platform: linux/amd64
+     volumes:
+       - ./.cache:/home/pptruser/highcharts-cache
      ports:
      - 7801:7801
+     cap_add:
+      - SYS_ADMIN
