@@ -1,0 +1,15 @@
+{
+	"name": "dockerized-highcharts-export-server",
+	"homepage": "https://github.com/interactive-studios/dockerized-highcharts-export-server#readme",
+	"dependencies": {
+		"highcharts-export-server": "^5.0.0"
+	},
+	"scripts": {
+		"test": "[ $(curl -H \"Content-Type: application/json\" -X POST -d '{\"infile\":{\"title\": {\"text\": \"Steep Chart\"}, \"xAxis\": {\"categories\": [\"Jan\", \"Feb\", \"Mar\"]}, \"series\": [{\"data\": [29, 71, 10]}]}}' localhost:7801 -w '%{size_download}' --compressed -so /dev/null) -lt 1000 ] && exit 1 || exit 0"
+	},
+	"overrides": {
+		"highcharts-export-server": {
+			"puppeteer": "^24.0.0"
+		}
+	}
+}

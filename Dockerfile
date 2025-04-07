@@ -1,63 +1,34 @@
-FROM node:18@sha256:8b2c008211854f4ee9ca328910d1c6bff8f30fc9fdf834b48f7ea40992a2079a
+FROM node:22-alpine
 
-ENV OPENSSL_CONF=/etc/ssl/
+# Installs Chromium (100) package.
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
 
-# Use a specific user to do these actions
-ARG UID=12000
-ARG GID=12001
-ARG UNAME=highcharts
+# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV HIGHCHARTS_CACHE_PATH=../../../../cache
 
-# We don't need the standalone Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
+VOLUME /cache
 
-# Install Chromium Stable and fonts
-# Note: this installs the necessary libs to make the browser work with Puppeteer.
-RUN apt-get update && apt-get install -y \
-  chromium \
-  chromium-l10n \
-  fonts-liberation \
-  fonts-roboto \
-  hicolor-icon-theme \
-  libcanberra-gtk-module \
-  libexif-dev \
-  libgl1-mesa-dri \
-  libgl1-mesa-glx \
-  libpangox-1.0-0 \
-  libv4l-0 \
-  fonts-symbola \
-  --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/* \
-  && mkdir -p /etc/chromium.d/ 
-
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 /usr/local/bin/dumb-init
-RUN chmod +x /usr/local/bin/dumb-init
-
-ENTRYPOINT ["dumb-init", "--"]
-
-# Add the user with a static UID and statid GID
-RUN groupadd --gid $GID $UNAME && useradd --uid $UID --gid $UNAME $UNAME && \ 
-  mkdir /home/highcharts && \
-  chown -R $UID:$GID /home/highcharts
-
-# Log in as the newly created user
-USER $UNAME
-
-ENV ACCEPT_HIGHCHARTS_LICENSE 1
-ENV HIGHCHARTS_USE_STYLED 0
-ENV HIGHCHARTS_MOMENT 1
-ENV HIGHCHARTS_USE_NPM 1
-ENV HIGHCHARTS_VERSION 'latest'
+RUN addgroup -S highcharts &&  \
+    adduser -S highcharts -G highcharts && \
+    mkdir -p /cache &&  \
+    chown -R highcharts:highcharts /cache
 
 WORKDIR /home/highcharts
+USER highcharts
 
-RUN git clone https://github.com/highcharts/node-export-server.git . && \
-  git checkout enhancement/puppeteer && \
-  npm install 
+COPY package.json package.json
+
+RUN npm install
 
 EXPOSE 7801
 
-COPY --chown=$UID:$GUID ./.hcexport ./.hcexport
-
 # Migrate and start webserver
-CMD ["npm", "run", "start", "--", "--loadConfig", ".hcexport"]
+CMD ["./node_modules/.bin/highcharts-export-server", "--enableServer" ,"true"]
