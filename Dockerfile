@@ -1,17 +1,32 @@
-FROM ghcr.io/puppeteer/puppeteer:24
+FROM node:22-alpine
 
-USER pptruser
-WORKDIR /home/pptruser
+# Installs Chromium (100) package.
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
 
-VOLUME /home/pptruser/highcharts-cache
+# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV HIGHCHARTS_CACHE_PATH=../../../../cache
 
-ENV HIGHCHARTS_CACHE_PATH '../../highcharts-cache'
-ENV PUPPETEER_CACHE_DIR='/home/pptruser/.cache/puppeteer'
+VOLUME /cache
 
-COPY package.json /home/pptruser/package.json
+RUN addgroup -S highcharts &&  \
+    adduser -S highcharts -G highcharts && \
+    mkdir -p /cache &&  \
+    chown -R highcharts:highcharts /cache
 
-RUN mkdir -p /home/pptruser/highcharts-cache && \
-    npm install
+WORKDIR /home/highcharts
+USER highcharts
+
+COPY package.json package.json
+
+RUN npm install
 
 EXPOSE 7801
 

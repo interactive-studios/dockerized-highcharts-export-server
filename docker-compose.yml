@@ -5,7 +5,7 @@ services:
        dockerfile: Dockerfile
      restart: unless-stopped
      volumes:
-       - ./.cache:/home/pptruser/highcharts-cache
+       - ./.cache:/cache
      ports:
      - 7801:7801
      cap_add:
