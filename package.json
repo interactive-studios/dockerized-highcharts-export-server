@@ -1,0 +1,12 @@
+{
+	"name": "dockerized-highcharts-export-server",
+	"homepage": "https://github.com/interactive-studios/dockerized-highcharts-export-server#readme",
+	"dependencies": {
+		"highcharts-export-server": "^5.0.0"
+	},
+	"overrides": {
+		"highcharts-export-server": {
+			"puppeteer": "^24.6.0"
+		}
+	}
+}

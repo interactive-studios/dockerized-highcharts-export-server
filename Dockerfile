@@ -10,6 +10,8 @@ ENV PUPPETEER_CACHE_DIR='/home/pptruser/.cache/puppeteer'
 
 COPY package.json /home/pptruser/package.json
 
+RUN npm install
+
 EXPOSE 7801
 
 # Migrate and start webserver

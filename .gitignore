@@ -106,3 +106,5 @@ dist
 cache/
 
 .idea/
+package-lock.json
+*.png
