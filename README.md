@@ -1,10 +1,6 @@
 # Dockerized export server for Highcharts
 
-An image to run a Highcharts export server.
-
-```
-ghcr.io/interactive-studios/dockerized-highcharts-export-server
-```
+An image to run a Highcharts export server. It uses [node-export-server](https://github.com/highcharts/node-export-server) to run the server.
 
 ## Requirements
  * Docker 19.03.8+
@@ -12,7 +8,7 @@ ghcr.io/interactive-studios/dockerized-highcharts-export-server
  ## Setup
 
 To run the server simply run
-```console
+```shell
 docker run --rm \
     -v highcharts-cache:/cache \
     --cap-add=SYS_ADMIN \
