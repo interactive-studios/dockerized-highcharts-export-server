@@ -10,7 +10,8 @@ ENV PUPPETEER_CACHE_DIR='/home/pptruser/.cache/puppeteer'
 
 COPY package.json /home/pptruser/package.json
 
-RUN npm install
+RUN mkdir -p /home/pptruser/highcharts-cache && \
+    npm install
 
 EXPOSE 7801
 
