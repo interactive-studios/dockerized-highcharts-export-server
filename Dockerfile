@@ -1,6 +1,6 @@
 FROM node:24-alpine
 
-# Installs Chromium (100) package.
+# Installs Chromium package.
 RUN apk add --no-cache \
       chromium \
       nss \
@@ -29,6 +29,10 @@ COPY package.json package.json
 RUN npm install
 
 EXPOSE 7801
+
+# Reduce number of workers for low-memory environments
+ENV POOL_MIN_WORKERS=1
+ENV POOL_MAX_WORKERS=4
 
 # Migrate and start webserver
 CMD ["./node_modules/.bin/highcharts-export-server", "--enableServer" ,"true"]
