@@ -34,5 +34,7 @@ EXPOSE 7801
 ENV POOL_MIN_WORKERS=1
 ENV POOL_MAX_WORKERS=4
 
-# Migrate and start webserver
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://127.0.0.1:7801/health || exit 1
+
 CMD ["./node_modules/.bin/highcharts-export-server", "--enableServer" ,"true"]
