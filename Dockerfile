@@ -26,7 +26,13 @@ USER highcharts
 
 COPY package.json package.json
 
-RUN npm install
+RUN npm install --omit=dev
+
+# Pre-build a config that mirrors the installed default Puppeteer args plus the no-sandbox flags,
+# so DISABLE_CHROMIUM_SANDBOX=true keeps every default hardening flag and stays in sync on bumps.
+RUN node -e 'import("./node_modules/highcharts-export-server/lib/schemas/config.js").then(({ defaultConfig }) => { const args = [...defaultConfig.puppeteer.args.value, "--no-sandbox", "--disable-setuid-sandbox"]; require("fs").writeFileSync("puppeteer-no-sandbox.json", JSON.stringify({ puppeteer: { args } })); })'
+
+COPY --chmod=755 docker-entrypoint.sh docker-entrypoint.sh
 
 EXPOSE 7801
 
@@ -37,4 +43,4 @@ ENV POOL_MAX_WORKERS=4
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://127.0.0.1:7801/health || exit 1
 
-CMD ["./node_modules/.bin/highcharts-export-server", "--enableServer" ,"true"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

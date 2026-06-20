@@ -1,0 +1,37 @@
+name: Test
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Install dependencies
+        run: npm install
+
+      # GitHub's Ubuntu runners restrict the unprivileged user namespaces Chromium's sandbox needs,
+      # so the suite runs in no-sandbox mode. See the README Security section for host requirements.
+      - name: Run tests
+        run: npm test
+        env:
+          RUN_MODE: no-sandbox
+
+      - name: Upload rendered output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-render-output
+          path: tests/__output__/
+          if-no-files-found: ignore
