@@ -90,6 +90,7 @@ curl -X POST -H "Content-Type: application/json" \
 | `POOL_MIN_WORKERS` | `1` | Minimum number of worker processes |
 | `POOL_MAX_WORKERS` | `4` | Maximum number of worker processes |
 | `HIGHCHARTS_CACHE_PATH` | `../../../../cache` | Path to cache directory |
+| `DISABLE_CHROMIUM_SANDBOX` | `false` | Set to `true` to run Chromium without its sandbox (for hosts that can't provide `SYS_ADMIN`) |
 
 ### Performance Tuning
 
@@ -134,11 +135,11 @@ services:
 
 The `SYS_ADMIN` capability is required for Chromium's sandboxing features. Without it, Chromium cannot create the necessary namespaces for process isolation.
 
-For environments where `SYS_ADMIN` is not available, you can disable the sandbox (not recommended for production):
+For environments where `SYS_ADMIN` is not available (such as Docker Desktop), set `DISABLE_CHROMIUM_SANDBOX=true` to run Chromium without its sandbox (not recommended for production):
 
 ```shell
 docker run -d \
-    -e PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox" \
+    -e DISABLE_CHROMIUM_SANDBOX=true \
     -v highcharts-cache:/cache \
     -p 7801:7801 \
     ghcr.io/interactive-studios/dockerized-highcharts-export-server

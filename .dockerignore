@@ -1,0 +1,7 @@
+.cache
+.git
+.github
+node_modules
+tests
+*.png
+docker-compose.yml
