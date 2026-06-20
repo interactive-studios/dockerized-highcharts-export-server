@@ -19,12 +19,16 @@ A Docker image to run a Highcharts export server using [node-export-server](http
 docker run -d \
     --name highcharts-export \
     -v highcharts-cache:/cache \
-    --cap-add=SYS_ADMIN \
     -p 7801:7801 \
     ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
 
 The server is now available at `http://localhost:7801`.
+
+> If charts fail to render with a sandbox error, your host restricts the
+> unprivileged user namespaces Chromium's sandbox needs (common on Ubuntu 23.10+
+> and Docker Desktop). See [Security](#security) for how to enable the sandbox or
+> disable it as a fallback.
 
 ## Usage
 
@@ -39,8 +43,6 @@ services:
       - highcharts-cache:/cache
     ports:
       - 7801:7801
-    cap_add:
-      - SYS_ADMIN
     environment:
       - POOL_MIN_WORKERS=1
       - POOL_MAX_WORKERS=4
@@ -90,7 +92,7 @@ curl -X POST -H "Content-Type: application/json" \
 | `POOL_MIN_WORKERS` | `1` | Minimum number of worker processes |
 | `POOL_MAX_WORKERS` | `4` | Maximum number of worker processes |
 | `HIGHCHARTS_CACHE_PATH` | `../../../../cache` | Path to cache directory |
-| `DISABLE_CHROMIUM_SANDBOX` | `false` | Set to `true` to run Chromium without its sandbox (for hosts that can't provide `SYS_ADMIN`) |
+| `DISABLE_CHROMIUM_SANDBOX` | `false` | Set to `true` to run Chromium without its sandbox (see [Security](#security)) |
 
 ### Performance Tuning
 
@@ -101,7 +103,6 @@ docker run -d \
     -e POOL_MIN_WORKERS=2 \
     -e POOL_MAX_WORKERS=8 \
     -v highcharts-cache:/cache \
-    --cap-add=SYS_ADMIN \
     -p 7801:7801 \
     ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
@@ -131,11 +132,28 @@ services:
 
 ## Security
 
-### Why SYS_ADMIN Capability?
+The server renders chart configurations in a real Chromium instance, so the
+browser sandbox is a meaningful defense-in-depth layer. Whether it can run is
+decided by the **host**, not by flags baked into this image: Chromium's sandbox
+requires **unprivileged user namespaces**.
 
-The `SYS_ADMIN` capability is required for Chromium's sandboxing features. Without it, Chromium cannot create the necessary namespaces for process isolation.
+### Choosing a configuration
 
-For environments where `SYS_ADMIN` is not available (such as Docker Desktop), set `DISABLE_CHROMIUM_SANDBOX=true` to run Chromium without its sandbox (not recommended for production):
+**1. Sandbox on, no extra privilege (most secure — preferred).** On hosts that
+allow unprivileged user namespaces, the sandbox works with the default Docker
+seccomp profile and no added capabilities:
+
+```shell
+docker run -d \
+    -v highcharts-cache:/cache \
+    -p 7801:7801 \
+    ghcr.io/interactive-studios/dockerized-highcharts-export-server
+```
+
+**2. Sandbox off (`DISABLE_CHROMIUM_SANDBOX=true`) — fallback.** When the host
+restricts user namespaces and you can't change it, disable the sandbox. This
+removes a security layer, so lean on the other controls below (non-root, dropped
+capabilities, read-only filesystem, the default seccomp profile):
 
 ```shell
 docker run -d \
@@ -144,6 +162,29 @@ docker run -d \
     -p 7801:7801 \
     ghcr.io/interactive-studios/dockerized-highcharts-export-server
 ```
+
+> `--cap-add=SYS_ADMIN` is **not** a reliable way to enable the sandbox. On hosts
+> that restrict unprivileged user namespaces it does not help — verified on
+> GitHub's Ubuntu 24.04 runners, where the sandbox fails to render even with
+> `SYS_ADMIN`. Earlier versions of this image documented it as required; it isn't.
+
+### Hosts that restrict user namespaces
+
+Ubuntu 23.10+ (including 24.04 and GitHub Actions runners) and Docker Desktop's
+VM restrict unprivileged user namespaces by default, which blocks the sandbox. To
+keep the sandbox on such a host, relax the restriction at the **host** level —
+for example:
+
+```shell
+sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+```
+
+(or install an AppArmor profile that grants the container user-namespace access).
+If you can't change the host, use `DISABLE_CHROMIUM_SANDBOX=true`.
+
+You can check what your own host supports by cloning this repo and running the
+test suite against each mode: `RUN_MODE=default npm test`, `RUN_MODE=sys-admin
+npm test`, `RUN_MODE=no-sandbox npm test`.
 
 ### Non-Root Execution
 
@@ -154,7 +195,7 @@ The server runs as a non-root `highcharts` user inside the container for improve
 ### Container fails to start
 
 1. Ensure Docker has enough memory allocated (minimum 512 MB)
-2. Verify the `SYS_ADMIN` capability is added
+2. If logs show a Chromium sandbox error, see [Security](#security) — your host likely restricts unprivileged user namespaces
 3. Check logs: `docker logs <container-id>`
 
 ### Out of memory errors
