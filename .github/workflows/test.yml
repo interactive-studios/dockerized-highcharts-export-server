@@ -9,6 +9,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The blocking gate: sandbox disabled, runs on any host.
+          - mode: no-sandbox
+            experimental: false
+          # Investigation: does the sandbox work on the runner without extra privilege, or with SYS_ADMIN?
+          - mode: default
+            experimental: true
+          - mode: sys-admin
+            experimental: true
+    name: test (${{ matrix.mode }})
+    continue-on-error: ${{ matrix.experimental }}
+    env:
+      RUN_MODE: ${{ matrix.mode }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -28,6 +44,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-render-output
+          name: test-render-output-${{ matrix.mode }}
           path: tests/__output__/
           if-no-files-found: ignore

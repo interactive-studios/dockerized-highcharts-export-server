@@ -20,6 +20,19 @@ const UPDATE_BASELINES = process.env.UPDATE_BASELINES === "1";
 // CPU architectures, so we only want to catch gross rendering breakage (blank/garbage output).
 const VR_MISMATCH_TOLERANCE = 0.02;
 
+// How to run the container. Each mode reflects a different security posture, exercised in CI to find
+// which sandboxed configuration actually renders on a real Linux host:
+//   no-sandbox — Chromium sandbox off (works on any host, incl. Docker Desktop); the local default
+//   default    — sandbox on, no extra privilege (relies on the host's default seccomp + user namespaces)
+//   sys-admin  — sandbox on, granted CAP_SYS_ADMIN
+const RUN_MODE = process.env.RUN_MODE || "no-sandbox";
+
+const RUN_ARGS_BY_MODE = {
+	"no-sandbox": ["-e", "DISABLE_CHROMIUM_SANDBOX=true"],
+	default: [],
+	"sys-admin": ["--cap-add=SYS_ADMIN"],
+};
+
 const chartConfig = JSON.parse(readFileSync(join(testDir, "fixtures", "chart.json"), "utf8"));
 
 function docker(args, options = {}) {
@@ -51,15 +64,12 @@ async function render(body) {
 
 describe("dockerized highcharts export server", () => {
 	before(async () => {
+		const modeArgs = RUN_ARGS_BY_MODE[RUN_MODE];
+		if (!modeArgs) throw new Error(`Unknown RUN_MODE: ${RUN_MODE}`);
+
 		docker(["build", "-t", IMAGE, "."], { cwd: repoRoot, stdio: "inherit" });
 		docker(["rm", "-f", CONTAINER], { stdio: "ignore" }); // clear any stale container
-		docker([
-			"run", "-d",
-			"--name", CONTAINER,
-			"-e", "DISABLE_CHROMIUM_SANDBOX=true",
-			"-p", "7801:7801",
-			IMAGE,
-		]);
+		docker(["run", "-d", "--name", CONTAINER, ...modeArgs, "-p", "7801:7801", IMAGE]);
 		await waitForHealth(Date.now() + HEALTH_TIMEOUT_MS);
 	}, { timeout: 300_000 });
 
