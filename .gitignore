@@ -108,3 +108,6 @@ cache/
 .idea/
 package-lock.json
 *.png
+# Keep committed visual-regression baselines despite the *.png ignore above.
+!tests/baselines/
+!tests/baselines/*.png

@@ -5,7 +5,12 @@
 		"highcharts-export-server": "^5.0.0"
 	},
 	"scripts": {
-		"test": "[ $(curl -H \"Content-Type: application/json\" -X POST -d '{\"infile\":{\"title\": {\"text\": \"Steep Chart\"}, \"xAxis\": {\"categories\": [\"Jan\", \"Feb\", \"Mar\"]}, \"series\": [{\"data\": [29, 71, 10]}]}}' localhost:7801 -w '%{size_download}' --compressed -so /dev/null) -lt 1000 ] && exit 1 || exit 0"
+		"test": "node --test \"tests/**/*.test.js\"",
+		"test:update-baselines": "UPDATE_BASELINES=1 node --test \"tests/**/*.test.js\""
+	},
+	"devDependencies": {
+		"pixelmatch": "^7.1.0",
+		"pngjs": "^7.0.0"
 	},
 	"overrides": {
 		"highcharts-export-server": {
