@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload rendered output on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-render-output
           path: tests/__output__/
