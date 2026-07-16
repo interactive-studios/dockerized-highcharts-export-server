@@ -7,6 +7,8 @@ on:
     branches: [main]
 
 jobs:
+  # Required gate. Renders with the sandbox off (DISABLE_CHROMIUM_SANDBOX=true) — the path we support
+  # on hosts that restrict unprivileged user namespaces, which is where the sandbox can't run.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -21,8 +23,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # GitHub's Ubuntu runners restrict the unprivileged user namespaces Chromium's sandbox needs,
-      # so the suite runs in no-sandbox mode. See the README Security section for host requirements.
       - name: Run tests
         run: npm test
         env:
@@ -33,5 +33,41 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-render-output
+          path: tests/__output__/
+          if-no-files-found: ignore
+
+  # Non-blocking canary. Renders with Chromium's sandbox ON under CAP_SYS_ADMIN — the posture consumers
+  # on restricted-userns hosts historically relied on. Chromium 149+ can no longer build its namespace
+  # sandbox there (144 could), so a base-image bump that crosses that line breaks those consumers while
+  # the no-sandbox gate above stays green. This job makes that breakage visible on the PR instead of
+  # only in production. It is expected to be red until such consumers move to DISABLE_CHROMIUM_SANDBOX=true
+  # or enable unprivileged user namespaces on their hosts; continue-on-error keeps it from blocking merges.
+  # Do NOT relax userns here (e.g. sysctl apparmor_restrict_unprivileged_userns=0) — that masks the very
+  # failure this canary exists to surface.
+  sandbox-canary:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+        env:
+          RUN_MODE: sys-admin
+
+      - name: Upload rendered output on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-render-output-sys-admin
           path: tests/__output__/
           if-no-files-found: ignore
