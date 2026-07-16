@@ -16,6 +16,11 @@ const BASE_URL = "http://localhost:7801";
 const HEALTH_TIMEOUT_MS = 60_000;
 const UPDATE_BASELINES = process.env.UPDATE_BASELINES === "1";
 
+// Pin the bundled Chromium major. A base-image bump silently moving this is exactly what broke
+// consumers before (144 -> 149 changed sandbox behavior), so a change must fail CI and force a human
+// to re-verify every render mode and decide whether it's breaking before bumping this value.
+const EXPECTED_CHROMIUM_MAJOR = 150;
+
 // Generous tolerance: anti-aliasing and font hinting differ across Chromium/Highcharts bumps and
 // CPU architectures, so we only want to catch gross rendering breakage (blank/garbage output).
 const VR_MISMATCH_TOLERANCE = 0.02;
@@ -113,6 +118,20 @@ describe("dockerized highcharts export server", () => {
 	test("runs as a non-root user", () => {
 		const uid = docker(["exec", CONTAINER, "id", "-u"]).toString().trim();
 		assert.notEqual(uid, "0", "container should not run as root");
+	});
+
+	test("bundled Chromium major matches the pinned baseline", () => {
+		const raw = docker(["exec", CONTAINER, "chromium-browser", "--version"]).toString();
+		const match = raw.match(/Chromium (\d+)\./);
+		assert.ok(match, `could not parse Chromium version from: ${raw}`);
+		const major = Number(match[1]);
+		assert.equal(
+			major,
+			EXPECTED_CHROMIUM_MAJOR,
+			`Chromium major changed ${EXPECTED_CHROMIUM_MAJOR} -> ${major}: a base-image bump changed the ` +
+				`bundled browser. Re-verify every render mode (especially the sandbox) and treat behavior ` +
+				`changes as breaking (major version + upgrade notes) before updating EXPECTED_CHROMIUM_MAJOR.`,
+		);
 	});
 
 	test("PNG matches visual baseline within tolerance", async () => {
