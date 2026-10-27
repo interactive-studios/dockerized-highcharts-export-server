@@ -24,9 +24,9 @@ RUN addgroup -S highcharts &&  \
 WORKDIR /home/highcharts
 USER highcharts
 
-COPY package.json package.json
+COPY package.json package-lock.json ./
 
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Pre-build a config that mirrors the installed default Puppeteer args plus the no-sandbox flags,
 # so DISABLE_CHROMIUM_SANDBOX=true keeps every default hardening flag and stays in sync on bumps.
