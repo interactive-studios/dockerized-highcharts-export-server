@@ -11,10 +11,5 @@
 	"devDependencies": {
 		"pixelmatch": "^7.1.0",
 		"pngjs": "^7.0.0"
-	},
-	"overrides": {
-		"highcharts-export-server": {
-			"puppeteer": "^24.0.0"
-		}
 	}
 }
