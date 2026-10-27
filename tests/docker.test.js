@@ -19,7 +19,7 @@ const UPDATE_BASELINES = process.env.UPDATE_BASELINES === "1";
 // Pin the bundled Chromium major. A base-image bump silently moving this is exactly what broke
 // consumers before (144 -> 149 changed sandbox behavior), so a change must fail CI and force a human
 // to re-verify every render mode and decide whether it's breaking before bumping this value.
-const EXPECTED_CHROMIUM_MAJOR = 150;
+const EXPECTED_CHROMIUM_MAJOR = 155;
 
 // Generous tolerance: anti-aliasing and font hinting differ across Chromium/Highcharts bumps and
 // CPU architectures, so we only want to catch gross rendering breakage (blank/garbage output).
