@@ -91,6 +91,8 @@ curl -X POST -H "Content-Type: application/json" \
 |----------|---------|-------------|
 | `POOL_MIN_WORKERS` | `1` | Minimum number of worker processes |
 | `POOL_MAX_WORKERS` | `4` | Maximum number of worker processes |
+| `POOL_QUEUE_LIMIT` | `0` | Max exports waiting for a worker; extra requests are refused. `0` means 4 × `POOL_MAX_WORKERS` |
+| `SERVER_KEEP_ALIVE_TIMEOUT` | `65000` | Idle keep-alive timeout in ms; keep it above any proxy/load balancer idle timeout |
 | `HIGHCHARTS_CACHE_PATH` | `../../../../cache` | Path to cache directory |
 | `DISABLE_CHROMIUM_SANDBOX` | `false` | Set to `true` to run Chromium without its sandbox (see [Security](#security)) |
 
