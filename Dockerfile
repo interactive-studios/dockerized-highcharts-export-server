@@ -32,6 +32,11 @@ RUN npm ci --omit=dev
 # so DISABLE_CHROMIUM_SANDBOX=true keeps every default hardening flag and stays in sync on bumps.
 RUN node -e 'import("./node_modules/highcharts-export-server/lib/schemas/config.js").then(({ defaultConfig }) => { const args = [...defaultConfig.puppeteer.args.value, "--no-sandbox", "--disable-setuid-sandbox"]; require("fs").writeFileSync("puppeteer-no-sandbox.json", JSON.stringify({ puppeteer: { args } })); })'
 
+# npm is only needed to install dependencies; drop it so its bundled packages don't ship in the image.
+USER root
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+USER highcharts
+
 COPY --chmod=755 docker-entrypoint.sh docker-entrypoint.sh
 
 EXPOSE 7801
